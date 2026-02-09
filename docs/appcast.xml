@@ -8,7 +8,7 @@
             <sparkle:version>1</sparkle:version>
             <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://owldesign.github.io/ShowTracker/ShowTracker-1.0.0.dmg" length="1425046" type="application/octet-stream" sparkle:edSignature="T9jTtWq7TJswWIdRTyDtBrIjwBgig4cO/IXPz87+N4P+yIIKjQHo3jNPDuBcCS6657NCemBXJ9wlv8opqjPLBQ=="/>
+            <enclosure url="https://owldesign.github.io/ShowTracker/ShowTracker-1.0.0.dmg" length="1408773" type="application/octet-stream" sparkle:edSignature="vSVzLQFzT82l25xVAZKgSvZXzWF8IdMT0F6mOHtE7STm2ehXROtKGRuuAOb2iPxmgdDP8FziNl6SXVQ9qOOHDw=="/>
         </item>
     </channel>
 </rss>
