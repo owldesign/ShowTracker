@@ -56,6 +56,17 @@
 
 Grab the latest `.dmg` from [GitHub Releases](https://github.com/owldesign/ShowTracker/releases/latest), open it, and drag ShowTracker to your Applications folder.
 
+### First Launch
+
+ShowTracker is distributed outside the Mac App Store, so macOS will show a security prompt the first time you open it.
+
+1. Open the DMG and drag **ShowTracker** to your Applications folder
+2. **Right-click** (or Control-click) ShowTracker in Applications
+3. Choose **Open** from the menu
+4. Click **Open** in the dialog that appears
+
+You only need to do this once &mdash; after that, ShowTracker opens normally.
+
 ### Build from Source
 
 ```bash

@@ -213,6 +213,43 @@
       color: var(--cream);
     }
 
+    .hero-note {
+      font-size: 0.78rem;
+      color: rgba(240, 237, 230, 0.3);
+      margin-top: 0.75rem;
+      position: relative;
+      z-index: 2;
+      animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.65s both;
+    }
+
+    .hero-note a {
+      color: rgba(240, 237, 230, 0.45);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .hero-note a:hover {
+      color: var(--cream-dim);
+    }
+
+    .cta-note {
+      font-size: 0.78rem;
+      color: rgba(240, 237, 230, 0.3);
+      margin-top: 0.75rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cta-note a {
+      color: rgba(240, 237, 230, 0.45);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .cta-note a:hover {
+      color: var(--cream-dim);
+    }
+
     .hero-meta {
       display: flex;
       align-items: center;
@@ -500,6 +537,8 @@
       </a>
     </div>
 
+    <p class="hero-note">First launch: right-click the app &rarr; Open &nbsp;(<a href="https://support.apple.com/en-us/102445">why?</a>)</p>
+
     <div class="hero-meta">
       <span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -625,6 +664,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Download for Mac
     </a>
+    <p class="cta-note">First launch: right-click the app &rarr; Open &nbsp;(<a href="https://support.apple.com/en-us/102445">why?</a>)</p>
   </section>
 
   <footer>
