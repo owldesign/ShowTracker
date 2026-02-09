@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="site/icon.png" width="128" height="128" alt="ShowTracker icon">
+  <img src="docs/icon.png" width="128" height="128" alt="ShowTracker icon">
 </p>
 
 <h1 align="center">ShowTracker</h1>
@@ -116,7 +116,7 @@ project.yml                         # xcodegen project spec
 scripts/
   release.sh                        # Build, DMG, sign, appcast generation
   generate_icon.py                  # App icon generator
-site/                               # Landing page (GitHub Pages)
+docs/                               # Landing page (GitHub Pages)
 ```
 
 ## Contributing

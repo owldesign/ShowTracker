@@ -7,7 +7,7 @@ set -euo pipefail
 
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$PROJECT_ROOT/build"
-SITE_DIR="$PROJECT_ROOT/site"
+SITE_DIR="$PROJECT_ROOT/docs"
 SCHEME="ShowTracker"
 
 # Find Sparkle CLI tools dynamically (DerivedData hash can change)
@@ -67,7 +67,7 @@ echo "--- Signing DMG with EdDSA ---"
 "$SPARKLE_BIN/sign_update" "$DMG_PATH"
 
 # Step 6: Copy DMG to site directory for GitHub Pages hosting
-echo "--- Copying DMG to site/ ---"
+echo "--- Copying DMG to docs/ ---"
 mkdir -p "$SITE_DIR"
 cp "$DMG_PATH" "$SITE_DIR/$DMG_NAME"
 
@@ -84,7 +84,7 @@ echo "  DMG:     $SITE_DIR/$DMG_NAME"
 echo "  Appcast: $SITE_DIR/appcast.xml"
 echo ""
 echo "Next steps:"
-echo "  1. git add site/appcast.xml site/$DMG_NAME"
+echo "  1. git add docs/appcast.xml docs/$DMG_NAME"
 echo "  2. git commit -m 'Release v${VERSION}'"
 echo "  3. git tag v${VERSION}"
 echo "  4. git push origin main --tags"
