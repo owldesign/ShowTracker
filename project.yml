@@ -1,0 +1,38 @@
+name: ShowTracker
+options:
+  bundleIdPrefix: com.showtracker
+  deploymentTarget:
+    macOS: "15.0"
+  xcodeVersion: "16.0"
+  minimumXcodeGenVersion: "2.38.0"
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: "2.6.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "15.0"
+targets:
+  ShowTracker:
+    type: application
+    platform: macOS
+    sources:
+      - ShowTracker
+    dependencies:
+      - package: Sparkle
+    info:
+      path: ShowTracker/Info.plist
+      properties:
+        SUFeedURL: "https://owldesign.github.io/ShowTracker/appcast.xml"
+        SUPublicEDKey: "Zql/y6YfOND1REkVuKfiKFNvxG6ZnLOv/vA5Crww8xM="
+        LSApplicationCategoryType: public.app-category.entertainment
+        CFBundleDisplayName: ShowTracker
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.showtracker.app
+        PRODUCT_NAME: ShowTracker
+        CURRENT_PROJECT_VERSION: 1
+        MARKETING_VERSION: 1.0.0
+        CODE_SIGN_ENTITLEMENTS: ShowTracker/ShowTracker.entitlements
+        ENABLE_PREVIEWS: YES

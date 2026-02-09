@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: macos-15
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16'
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Resolve SPM dependencies
+        run: xcodebuild -resolvePackageDependencies -project ShowTracker.xcodeproj
+
+      - name: Find Sparkle CLI tools
+        id: sparkle
+        run: |
+          SPARKLE_BIN=$(find ~/Library/Developer/Xcode/DerivedData -path "*/artifacts/sparkle/Sparkle/bin" -type d 2>/dev/null | head -1)
+          echo "bin=$SPARKLE_BIN" >> "$GITHUB_OUTPUT"
+
+      - name: Build Release
+        run: |
+          xcodebuild -project ShowTracker.xcodeproj \
+            -scheme ShowTracker \
+            -configuration Release \
+            -derivedDataPath build/DerivedData \
+            build
+
+      - name: Create DMG
+        run: |
+          mkdir -p build/dmg-staging
+          cp -R build/DerivedData/Build/Products/Release/ShowTracker.app build/dmg-staging/
+          ln -s /Applications build/dmg-staging/Applications
+          hdiutil create -volname "ShowTracker" \
+            -srcfolder build/dmg-staging \
+            -ov -format UDZO \
+            "build/ShowTracker-${{ steps.version.outputs.VERSION }}.dmg"
+
+      - name: Sign DMG with EdDSA
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          echo "$SPARKLE_PRIVATE_KEY" | "${{ steps.sparkle.outputs.bin }}/sign_update" \
+            "build/ShowTracker-${{ steps.version.outputs.VERSION }}.dmg" \
+            --ed-key-file /dev/stdin
+
+      - name: Generate appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          cp "build/ShowTracker-${{ steps.version.outputs.VERSION }}.dmg" site/
+          echo "$SPARKLE_PRIVATE_KEY" | "${{ steps.sparkle.outputs.bin }}/generate_appcast" site/ \
+            --download-url-prefix "https://owldesign.github.io/ShowTracker/" \
+            --ed-key-file /dev/stdin
+
+      - name: Commit appcast and DMG
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add site/appcast.xml "site/ShowTracker-${{ steps.version.outputs.VERSION }}.dmg"
+          git commit -m "Release v${{ steps.version.outputs.VERSION }}: update appcast and DMG" || true
+          git push origin HEAD:main
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/ShowTracker-${{ steps.version.outputs.VERSION }}.dmg
+          generate_release_notes: true

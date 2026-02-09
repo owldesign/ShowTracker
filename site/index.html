@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShowTracker — Never Lose Your Place</title>
+  <meta name="description" content="A fast, keyboard-first macOS app that bookmarks exactly where you stopped watching any TV show or movie.">
+  <link rel="icon" type="image/png" href="icon-small.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    :root {
+      --teal: #0D9488;
+      --teal-light: #10B981;
+      --teal-deep: #065F46;
+      --teal-glow: rgba(13, 148, 136, 0.35);
+      --cream: #F0EDE6;
+      --cream-dim: rgba(240, 237, 230, 0.55);
+      --charcoal: #0E0F11;
+      --charcoal-light: #1A1B1F;
+      --charcoal-card: #16171B;
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'DM Sans', -apple-system, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--charcoal);
+      color: var(--cream);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Noise texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 2rem;
+    }
+
+    /* Radial glow behind icon */
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--teal-glow) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      filter: blur(60px);
+      animation: breathe 6s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.5; transform: translate(-50%, -55%) scale(1); }
+      50% { opacity: 0.8; transform: translate(-50%, -55%) scale(1.08); }
+    }
+
+    .hero-icon {
+      width: 160px;
+      height: 160px;
+      border-radius: 36px;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(0 20px 60px rgba(13, 148, 136, 0.3));
+      animation: float-in 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes float-in {
+      from { opacity: 0; transform: translateY(30px) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 100px;
+      border: 1px solid rgba(13, 148, 136, 0.25);
+      background: rgba(13, 148, 136, 0.08);
+      color: var(--teal-light);
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 2.5rem;
+      position: relative;
+      z-index: 2;
+      animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+    }
+
+    .hero-badge svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(3rem, 8vw, 5.5rem);
+      font-weight: 400;
+      line-height: 1.05;
+      text-align: center;
+      margin-top: 1.5rem;
+      position: relative;
+      z-index: 2;
+      animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--teal-light);
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--cream-dim);
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.6;
+      margin-top: 1.25rem;
+      position: relative;
+      z-index: 2;
+      animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
+    }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 2.5rem;
+      position: relative;
+      z-index: 2;
+      animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.9rem 2rem;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+      color: #fff;
+      font-family: var(--sans);
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 24px rgba(13, 148, 136, 0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(13, 148, 136, 0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .btn-download:active {
+      transform: translateY(0);
+    }
+
+    .btn-download svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.9rem 1.6rem;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--cream-dim);
+      font-family: var(--sans);
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border: 1px solid rgba(240, 237, 230, 0.12);
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(240, 237, 230, 0.3);
+      color: var(--cream);
+    }
+
+    .hero-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      color: rgba(240, 237, 230, 0.3);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 2;
+      animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both;
+    }
+
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .hero-meta svg {
+      width: 13px;
+      height: 13px;
+      opacity: 0.5;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(240,237,230,0.08), transparent);
+    }
+
+    /* ── Features ── */
+    .features {
+      padding: 6rem 2rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .features-header h2 {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 400;
+    }
+
+    .features-header p {
+      color: var(--cream-dim);
+      margin-top: 0.75rem;
+      font-size: 1.05rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.25rem;
+    }
+
+    .feature-card {
+      padding: 2rem;
+      border-radius: 20px;
+      background: var(--charcoal-card);
+      border: 1px solid rgba(240, 237, 230, 0.04);
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(13, 148, 136, 0.2);
+      transform: translateY(-3px);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(13, 148, 136, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      color: var(--teal-light);
+    }
+
+    .feature-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .feature-card h3 {
+      font-family: var(--sans);
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      color: var(--cream-dim);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+
+    /* ── Shortcuts showcase ── */
+    .shortcuts {
+      padding: 4rem 2rem 6rem;
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .shortcuts h2 {
+      font-family: var(--serif);
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+
+    .shortcuts > p {
+      color: var(--cream-dim);
+      margin-bottom: 2.5rem;
+      font-size: 1rem;
+    }
+
+    .shortcut-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .shortcut-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 1.2rem;
+      border-radius: 12px;
+      background: var(--charcoal-card);
+      border: 1px solid rgba(240, 237, 230, 0.04);
+    }
+
+    .shortcut-label {
+      font-size: 0.9rem;
+      color: var(--cream-dim);
+    }
+
+    .shortcut-keys {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .key {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 0.5rem;
+      border-radius: 6px;
+      background: rgba(240, 237, 230, 0.06);
+      border: 1px solid rgba(240, 237, 230, 0.1);
+      border-bottom-width: 2px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--cream);
+      font-family: var(--sans);
+    }
+
+    /* ── CTA ── */
+    .cta {
+      padding: 6rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .cta::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--teal-glow) 0%, transparent 70%);
+      bottom: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      filter: blur(80px);
+      opacity: 0.3;
+    }
+
+    .cta h2 {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 400;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cta h2 em {
+      font-style: italic;
+      color: var(--teal-light);
+    }
+
+    .cta p {
+      color: var(--cream-dim);
+      margin-top: 1rem;
+      font-size: 1.05rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cta .btn-download {
+      margin-top: 2rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 2rem;
+      text-align: center;
+      color: rgba(240, 237, 230, 0.2);
+      font-size: 0.8rem;
+    }
+
+    footer a {
+      color: rgba(240, 237, 230, 0.35);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      color: var(--cream-dim);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .hero-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-icon {
+        width: 120px;
+        height: 120px;
+        border-radius: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ HERO ═══ -->
+  <section class="hero">
+    <img src="icon.png" alt="ShowTracker app icon" class="hero-icon" width="160" height="160">
+
+    <div class="hero-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="m9 12 2 2 4-4"/></svg>
+      Free &middot; macOS 15+
+    </div>
+
+    <h1>Never lose<br>your <em>place</em></h1>
+
+    <p class="hero-sub">A fast, keyboard-first macOS app that bookmarks exactly where you stopped watching any TV show or movie.</p>
+
+    <div class="hero-actions">
+      <a href="ShowTracker-1.0.0.dmg" class="btn-download" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download for Mac
+      </a>
+      <a href="https://github.com/owldesign/ShowTracker" class="btn-secondary">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Source Code
+      </a>
+    </div>
+
+    <div class="hero-meta">
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        macOS native
+      </span>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Local-first, fully offline
+      </span>
+      <span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        Keyboard-first
+      </span>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ FEATURES ═══ -->
+  <section class="features">
+    <div class="features-header">
+      <h2>Everything you need,<br>nothing you don't</h2>
+      <p>Built for one job and does it exceptionally well.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <h3>Shows &amp; Movies</h3>
+        <p>Track TV shows by season and episode, or movies by timestamp. One app for everything you watch.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <h3>Instant Search</h3>
+        <p>Spotlight-style search across all your shows. Hit <strong style="color:var(--cream)">&#8984;F</strong> and start typing. Results filter as you go.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+        </div>
+        <h3>One-Click Progress</h3>
+        <p>Increment episode, change season, or mark finished in a single click or keystroke. No friction.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </div>
+        <h3>Local &amp; Private</h3>
+        <p>All data stays on your Mac. No accounts, no cloud, no tracking. Works fully offline, always.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </div>
+        <h3>Filter by Status</h3>
+        <p>Watching, On Hold, Finished, Rewatching. Sidebar filters with live counts keep you organized.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <h3>Quick Notes</h3>
+        <p>"Paused right after the fight scene." Add context so future-you remembers exactly where things left off.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ SHORTCUTS ═══ -->
+  <section class="shortcuts">
+    <h2>Keyboard-first,<br>always</h2>
+    <p>Every action is a shortcut away. Your hands never leave the keyboard.</p>
+
+    <div class="shortcut-list">
+      <div class="shortcut-row">
+        <span class="shortcut-label">Add new item</span>
+        <div class="shortcut-keys"><span class="key">&#8984;</span><span class="key">N</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-label">Search</span>
+        <div class="shortcut-keys"><span class="key">&#8984;</span><span class="key">F</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-label">Next episode</span>
+        <div class="shortcut-keys"><span class="key">&#8984;</span><span class="key">&#9166;</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-label">Mark finished</span>
+        <div class="shortcut-keys"><span class="key">&#8984;</span><span class="key">&#9003;</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-label">Edit item</span>
+        <div class="shortcut-keys"><span class="key">&#8984;</span><span class="key">E</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-label">Toggle inspector</span>
+        <div class="shortcut-keys"><span class="key">&#8984;</span><span class="key">&#8997;</span><span class="key">I</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="cta">
+    <h2>Start <em>tracking</em><br>in seconds</h2>
+    <p>Free, lightweight, and built for macOS. No signup required.</p>
+    <a href="ShowTracker-1.0.0.dmg" class="btn-download" download>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download for Mac
+    </a>
+  </section>
+
+  <footer>
+    <p>ShowTracker &middot; Built with SwiftUI + SwiftData &middot; <a href="https://github.com/owldesign/ShowTracker">Source on GitHub</a></p>
+  </footer>
+
+</body>
+</html>
