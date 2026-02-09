@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>ShowTracker</title>
+        <item>
+            <title>1.0</title>
+            <pubDate>Mon, 09 Feb 2026 10:11:55 -0800</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://owldesign.github.io/ShowTracker/ShowTracker-1.0.0.dmg" length="1425046" type="application/octet-stream" sparkle:edSignature="T9jTtWq7TJswWIdRTyDtBrIjwBgig4cO/IXPz87+N4P+yIIKjQHo3jNPDuBcCS6657NCemBXJ9wlv8opqjPLBQ=="/>
+        </item>
+    </channel>
+</rss>
